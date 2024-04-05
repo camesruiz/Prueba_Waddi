@@ -27,6 +27,7 @@ json_df = spark.read.json("s3://{}/{}".format(args['bucket'], "dataset.json"))
 # Date formatting
 json_df_transformed = json_df.withColumn("Order Date", to_date(col("Order Date"), "dd-MM-yyyy"))
 json_df_transformed = json_df_transformed.withColumn("Ship Date", to_date(col("Ship Date"), "dd-MM-yyyy"))
+json_df_transformed = json_df_transformed.na.drop(subset=["Order ID"])
 
 # Schema definition
 jsonDF = DynamicFrame.fromDF(json_df_transformed, glueContext, "jsonDF")
