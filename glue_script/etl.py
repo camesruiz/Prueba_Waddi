@@ -28,6 +28,7 @@ json_df = spark.read.json("s3://{}/{}".format(args['bucket'], "dataset.json"))
 json_df_transformed = json_df.withColumn("Order Date", to_date(col("Order Date"), "dd-MM-yyyy"))
 json_df_transformed = json_df_transformed.withColumn("Ship Date", to_date(col("Ship Date"), "dd-MM-yyyy"))
 
+# Schema definition
 jsonDF = DynamicFrame.fromDF(json_df_transformed, glueContext, "jsonDF")
 
 jsonDF = ApplyMapping.apply(
@@ -56,6 +57,7 @@ jsonDF = ApplyMapping.apply(
         ("Shipping Cost", "long", "Shipping Cost", "float"),
         ("State", "string", "State", "string"),
         ("Sub-Category", "string", "Sub-Category", "string"),
+        ("", "long", "Unnamed: 0", "int"),
         ("order month", "long", "order month", "int"),
         ("order year", "long", "order year", "int")],
     transformation_ctx="orders_transformation")
