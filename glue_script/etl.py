@@ -56,6 +56,7 @@ jsonDF = ApplyMapping.apply(
         ("Shipping Cost", "long", "Shipping Cost", "float"),
         ("State", "string", "State", "string"),
         ("Sub-Category", "string", "Sub-Category", "string"),
+        ("", "long", "Unnamed: 0", "int"),
         ("order month", "long", "order month", "int"),
         ("order year", "long", "order year", "int")],
     transformation_ctx="orders_transformation")
