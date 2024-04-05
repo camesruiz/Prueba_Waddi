@@ -1,0 +1,15 @@
+# Local .terraform directories
+**/.terraform/*
+
+# .lock files
+*.lock.*
+
+# .tfstate files
+*.tfstate
+*.tfstate.*
+
+# idea files
+*.idea
+
+# test
+**/test/__pycache__/*
