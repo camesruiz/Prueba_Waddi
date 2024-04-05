@@ -1,43 +1,70 @@
-# Couldn't automatically generate a config from your source code.
-# This is a generic template to serve as a base for your custom config
-# See: https://circleci.com/docs/configuration-reference
 version: 2.1
+orbs:
+  python: circleci/python@2.1.1
+  aws-cli: circleci/aws-cli@2.0.6
+
 jobs:
-  test:
-    docker:
-      - image: cimg/base:stable
+  build_and_test:
+    executor:
+      name: python/default
+      tag: "3.8"
     steps:
+      - aws-cli/setup:
+          aws-access-key-id: AWS_ACCESS_KEY
+          aws-secret-access-key: AWS_ACCESS_SECRET
+          aws-region: AWS_REGION_NAME
       - checkout
-      # Replace this with a real test runner invocation
       - run:
-          name: Run tests
-          command: echo 'replace me with real tests!' && false
-  build:
-    docker:
-      - image: cimg/base:stable
-    steps:
-      - checkout
-      # Replace this with steps to build a package, or executable
-      - run:
-          name: Build an artifact
-          command: touch example.txt
-      - store_artifacts:
-          path: example.txt
+          name: Install packages
+          command: |
+            pip install boto3
+      - persist_to_workspace:
+          root: ~/project
+          paths:
+            - .
   deploy:
-    docker:
-      - image: cimg/base:stable
+    executor:
+      name: python/default
+      tag: "3.8"
     steps:
-      # Replace this with steps to deploy to users
+      - attach_workspace:
+          at: ~/project
       - run:
-          name: deploy
-          command: '#e.g. ./deploy.sh'
+          name: Install AWS CLI
+          command: |
+            pip install awscli
+      - run:
+          name: Zip Lambda function
+          command: |
+            mkdir lambda_func
+            mkdir lambda_artifacts
+            cd lambda_artifacts
+            pip install boto3
+            zip -r ../lambda_func/lambda_function.zip .
+            cd ..
+            zip -j lambda_func/lambda_function.zip lambda_function/lambda_function.py
+      - run:
+          name: Dir
+          command: |
+            echo "$PWD"
+            ls
+      - run:
+          name: Deploy Lambda function
+          command: |
+            export AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY"
+            export AWS_SECRET_ACCESS_KEY="$AWS_ACCESS_SECRET"
+            export AWS_DEFAULT_REGION="$AWS_REGION_NAME"
+            aws s3 sync ./glue_script s3://camesruiz-waddi/glue_script
+            aws s3 sync ./lambda_func s3://camesruiz-waddi
+            aws lambda update-function-code --function-name "thumbnail_gen" --s3-bucket "stori-lambda-artifacts" --s3-key "lambda_script/lambda_function.zip"
+
 workflows:
-  example:
+  test_my_app:
     jobs:
-      - test
-      - build:
-          requires:
-            - test
+      - build_and_test
       - deploy:
           requires:
-            - test
+            - build_and_test # only deploy if the build_and_test job has completed
+          filters:
+            branches:
+              only: main # only deploy when on main
