@@ -56,7 +56,7 @@ jobs:
             export AWS_DEFAULT_REGION="$AWS_REGION_NAME"
             aws s3 sync ./glue_script s3://camesruiz-waddi/glue_script
             aws s3 sync ./lambda_func s3://camesruiz-waddi
-            aws lambda update-function-code --function-name "thumbnail_gen" --s3-bucket "stori-lambda-artifacts" --s3-key "lambda_script/lambda_function.zip"
+            aws lambda update-function-code --function-name "waddi_data_ingestion" --s3-bucket "camesruiz-waddi" --s3-key "lambda_script/lambda_function.zip"
 
 workflows:
   test_my_app:
